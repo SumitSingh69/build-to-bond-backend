@@ -164,7 +164,7 @@ erDiagram
 
 ## Project Structure
 
-```text
+
 backend/
 ├── config/
 │   ├── database.config.js    # MongoDB connection
