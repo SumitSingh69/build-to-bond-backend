@@ -164,7 +164,7 @@ erDiagram
 
 ## Project Structure
 
-```
+```text
 backend/
 ├── config/
 │   ├── database.config.js    # MongoDB connection
@@ -191,7 +191,8 @@ backend/
 ├── validators/
 │   └── user.validator.js     # Input validation schemas
 ├── index.js                  # Application entry point
-└── package.json              # Dependencies and scripts
+├── package.json              # Dependencies and scripts
+└── README.md                 # Project documentation
 ```
 
 ## API Endpoints
