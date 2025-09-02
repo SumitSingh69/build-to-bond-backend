@@ -150,15 +150,16 @@ erDiagram
     }
     
     USER ||--o{ USER : matches
-    
-    USER {
-        agePreferences "min: Number, max: Number"
-        socialLinks "instagram, facebook, twitter, linkedin"
-        subscription "free | solara"
-        privacy "public | private"
-        gender "male | female | other"
-        lookingFor "friendship | relationship | casual | other"
-    }
+```
+
+### Schema Details
+
+- **agePreferences**: `{ min: Number, max: Number }`
+- **socialLinks**: `{ instagram, facebook, twitter, linkedin }`
+- **subscription**: `"free" | "solara"`
+- **privacy**: `"public" | "private"`
+- **gender**: `"male" | "female" | "other"`
+- **lookingFor**: `"friendship" | "relationship" | "casual" | "other"`
 ```
 
 ## Project Structure
