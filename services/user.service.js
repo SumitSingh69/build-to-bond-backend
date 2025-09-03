@@ -1,130 +1,235 @@
-import { Env } from '../config/env.config.js';
-import User from '../models/user.model.js';
-import { UnauthorizedException } from '../utils/AppError.js';
-import { comparePassword } from '../utils/bcrypt.js';
-import jwt from 'jsonwebtoken';
+import { Env } from "../config/env.config.js";
+import User from "../models/user.model.js";
+import {
+  UnauthorizedException,
+  BadRequestException,
+} from "../utils/AppError.js";
+import { comparePassword } from "../utils/bcrypt.js";
+import jwt from "jsonwebtoken";
 
 export const registerService = async (userData) => {
-	const { 
-		email, 
-		firstName, 
-		lastName, 
-		password
-	} = userData;
+  const { email, firstName, lastName, password, phone } = userData;
 
-	try {
-		const existingUser = await User.findOne({ email });
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new BadRequestException("User with this email already exists");
+    }
 
-		if (existingUser) {
-			throw new UnauthorizedException("User with this email already exists");
-		}
+    const existingPhone = await User.findOne({ phone });
+    if (existingPhone) {
+      throw new BadRequestException(
+        "User with this phone number already exists"
+      );
+    }
 
-		const newUser = new User({
-			firstName,
-			lastName,
-			email,
-			password
-		});
+    const newUser = new User({
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+    });
 
-		await newUser.save();
+    await newUser.save();
 
-		const userObj = newUser.toObject();
-		delete userObj.password;
+    newUser.calculateProfileCompleteness();
+    await newUser.save();
 
-		return {
-			user: userObj
-		};
+    const userObj = newUser.omitPassword();
 
-	} catch (error) {
-		throw error;
-	}
-}
+    return {
+      user: userObj,
+      message:
+        "Registration successful. Please complete your profile to get better matches.",
+    };
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const loginService = async (credentials) => {
-	const { email, password } = credentials;
+  const { email, password } = credentials;
 
-	try {
-		const user = await User.findOne({ email }).select("+password");
+  try {
+    const user = await User.findOne({
+      email,
+      isActive: true,
+    }).select("+password");
 
-		if (!user) {
-			throw new UnauthorizedException("Invalid email or password");
-		}
+    if (!user) {
+      throw new UnauthorizedException("Invalid email or password");
+    }
 
-		const isMatch = await comparePassword(password, user.password);
+    const isMatch = await comparePassword(password, user.password);
 
-		if (!isMatch) {
-			throw new UnauthorizedException("Invalid email or password");
-		}
+    if (!isMatch) {
+      throw new UnauthorizedException("Invalid email or password");
+    }
 
-        const token = jwt.sign(
-        { userId: (user._id).toString() }, 
-        Env.JWT_SECRET, 
-        {
-          expiresIn: Env.JWT_EXPIRES_IN,
-        }
-      );
+    user.lastActive = new Date();
+    await user.save();
 
-		const userObj = user.toObject();
-		delete userObj.password;
+    const token = jwt.sign({ userId: user._id.toString() }, Env.JWT_SECRET, {
+      expiresIn: Env.JWT_EXPIRES_IN,
+    });
 
-		return {
-			user: userObj,
-            accessToken : token,
-            expiresAt : Env.JWT_EXPIRES_IN
-		};
+    const userObj = user.omitPassword();
 
-	} catch (error) {
-		throw error;
-	}
+    return {
+      user: userObj,
+      accessToken: token,
+      expiresAt: Env.JWT_EXPIRES_IN,
+      profileCompleteness: user.profileCompleteness,
+    };
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const updateProfileService = async (userId, profileData) => {
-	const { 
-		dob, 
-		gender,
-		bio,
-		interests,
-		profilePicture,
-		avatar,
-		location,
-		agePreferences,
-		socialLinks,
-		privacy,
-		lookingFor
-	} = profileData;
+  try {
+    const user = await User.findById(userId);
 
-	try {
-		const user = await User.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
 
-		if (!user) {
-			throw new UnauthorizedException("User not found");
-		}
+    if (profileData.location) {
+      const currentLocation = user.location || {};
+      user.location = {
+        ...currentLocation,
+        ...profileData.location,
+      };
+      delete profileData.location;
+    }
 
-		// Update only provided fields
-		const updateData = {};
-		if (dob) updateData.dob = dob;
-		if (gender) updateData.gender = gender;
-		if (bio !== undefined) updateData.bio = bio;
-		if (interests) updateData.interests = interests;
-		if (profilePicture !== undefined) updateData.profilePicture = profilePicture;
-		if (avatar !== undefined) updateData.avatar = avatar;
-		if (location !== undefined) updateData.location = location;
-		if (agePreferences) updateData.agePreferences = agePreferences;
-		if (socialLinks) updateData.socialLinks = socialLinks;
-		if (privacy) updateData.privacy = privacy;
-		if (lookingFor) updateData.lookingFor = lookingFor;
+    if (profileData.agePreferences) {
+      const currentAgePrefs = user.agePreferences || {};
+      user.agePreferences = {
+        ...currentAgePrefs,
+        ...profileData.agePreferences,
+      };
+      delete profileData.agePreferences;
+    }
 
-		const updatedUser = await User.findByIdAndUpdate(
-			userId, 
-			updateData, 
-			{ new: true, runValidators: true }
-		).select('-password');
+    if (profileData.socialLinks) {
+      const currentSocialLinks = user.socialLinks || {};
+      user.socialLinks = {
+        ...currentSocialLinks,
+        ...profileData.socialLinks,
+      };
+      delete profileData.socialLinks;
+    }
 
-		return {
-			user: updatedUser
-		};
+    Object.keys(profileData).forEach((key) => {
+      if (profileData[key] !== undefined) {
+        user[key] = profileData[key];
+      }
+    });
 
-	} catch (error) {
-		throw error;
-	}
+    user.lastActive = new Date();
+
+    user.calculateProfileCompleteness();
+
+    const updatedUser = await user.save();
+
+    return {
+      user: updatedUser.omitPassword(),
+      profileCompleteness: updatedUser.profileCompleteness,
+      message: "Profile updated successfully",
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const changePasswordService = async (userId, passwordData) => {
+  const { currentPassword, newPassword } = passwordData;
+
+  try {
+    const user = await User.findById(userId).select("+password");
+
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+
+    const isMatch = await comparePassword(currentPassword, user.password);
+
+    if (!isMatch) {
+      throw new UnauthorizedException("Current password is incorrect");
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    return {
+      message: "Password changed successfully",
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateLocationService = async (userId, locationData) => {
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+
+    user.location = {
+      ...user.location,
+      ...locationData,
+    };
+
+    user.lastActive = new Date();
+    const updatedUser = await user.save();
+
+    return {
+      user: updatedUser.omitPassword(),
+      message: "Location updated successfully",
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getUserProfileService = async (userId) => {
+  try {
+    const user = await User.findById(userId)
+      .populate("matches", "firstName lastName profilePicture")
+      .populate("crushes", "firstName lastName profilePicture");
+
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+
+    return {
+      user: user.omitPassword(),
+      profileCompleteness: user.profileCompleteness,
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deactivateAccountService = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+
+    user.isActive = false;
+    await user.save();
+
+    return {
+      message: "Account deactivated successfully",
+    };
+  } catch (error) {
+    throw error;
+  }
 };
