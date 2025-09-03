@@ -11,7 +11,7 @@ import { ErrorHandler } from "./middlewares/ErrorHandler.middleware.js";
 
 import DatabaseConnect from "./config/database.config.js";
 
-import UserRoute from './routes/user.route.js'
+import UserRoute from "./routes/user.route.js";
 
 const app = express();
 
@@ -22,34 +22,39 @@ const BASE_PATH = Env.BASE_PATH;
 app.use(
   cors({
     origin: [
-      'http://localhost:5173',
-      'http://localhost:3000', 
-      Env.FRONTEND_ORIGIN
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "https://build-to-bond-frontend.vercel.app",
+      "https://*.vercel.app",
+      Env.FRONTEND_ORIGIN,
     ].filter(Boolean),
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-app.use(morgan('dev'));
-app.use(helmet({
-    crossOriginResourcePolicy: false
-}));
-
+app.use(morgan("dev"));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 
 app.get(
   "/",
   AsyncHandler(async (req, res, next) => {
-    const date = new Date();
-    
     res.status(HTTPSTATUS.OK).json({
-      message: "connected successfully",
-      status: "✅ Connected Successfully",
-      date,
+      status: "success",
+      message: "Backend API is running smoothly",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || "development",
     });
   })
 );
 
 app.use(`${BASE_PATH}/v1/users`, UserRoute);
+// app.use(`${BASE_PATH}/v1`, HealthRoute);
 // app.use(`${BASE_PATH}/v1/events`, EventRoute);
 // app.use(`${BASE_PATH}/v1/teams`, TeamRoute);
 // app.use(`${BASE_PATH}/v1/submissions`, SubmissionRoute);
@@ -64,14 +69,19 @@ const initializeApp = async () => {
     await DatabaseConnect();
     console.log(`Database connected in ${Env.NODE_ENV} mode.`);
   } catch (error) {
-    console.error('Failed to initialize app:', error);
+    console.error("Failed to initialize app:", error);
   }
 };
 
-app.listen(Env.PORT, async () => {
-  await initializeApp();
-  console.log(`Server is running on port ${Env.PORT} in ${Env.NODE_ENV} mode`);
-});
+// Initialize database connection
+initializeApp();
 
+// For Vercel serverless deployment
+if (process.env.NODE_ENV !== "production") {
+  const PORT = Env.PORT || 3001;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT} in ${Env.NODE_ENV} mode`);
+  });
+}
 
 export default app;
