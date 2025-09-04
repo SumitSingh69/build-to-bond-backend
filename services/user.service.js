@@ -3,6 +3,7 @@ import User from "../models/user.model.js";
 import {
   UnauthorizedException,
   BadRequestException,
+  NotFoundException,
 } from "../utils/AppError.js";
 import { comparePassword } from "../utils/bcrypt.js";
 import jwt from "jsonwebtoken";
@@ -144,6 +145,35 @@ export const updateProfileService = async (userId, profileData) => {
   }
 };
 
+export const getAllUsersService = async () => {
+  try {
+    const users = await User.find().select("-password");
+    if (users.length === 0) {
+      throw NotFoundException("No users found");
+    }
+    return {
+      users: users,
+      message: "Users fetched successfully",
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const findUserByIdService = async (userId) => {
+  try {
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    return {
+      user: user,
+      message: "User fetched successfully",
+    };
+  } catch (error) {
+    throw error;
+  }
+};
 export const changePasswordService = async (userId, passwordData) => {
   const { currentPassword, newPassword } = passwordData;
 

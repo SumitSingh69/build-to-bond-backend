@@ -7,6 +7,8 @@ import {
   updateLocationService,
   getUserProfileService,
   deactivateAccountService,
+  getAllUsersService,
+  findUserByIdService,
 } from "../services/user.service.js";
 import {
   LoginSchema,
@@ -48,6 +50,23 @@ export const updateProfile = AsyncHandler(async (req, res) => {
   });
 });
 
+export const fetchAllUsers = AsyncHandler(async (req, res) => {
+  const result = await getAllUsersService();
+  res.status(HTTPSTATUS.OK).json({
+    success: true,
+    message: result.message,
+    data: result.users,
+  });
+});
+
+export const findUserById = AsyncHandler(async (req, res) => {
+  const result = await findUserByIdService(req.params.id);
+  res.status(HTTPSTATUS.OK).json({
+    success: true,
+    message: result.message,
+    data: result.user,
+  });
+});
 export const changePassword = AsyncHandler(async (req, res) => {
   const body = PasswordChangeSchema.parse(req.body);
   const userId = req.user._id;
