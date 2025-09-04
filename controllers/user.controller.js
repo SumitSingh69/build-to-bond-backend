@@ -51,7 +51,8 @@ export const updateProfile = AsyncHandler(async (req, res) => {
 });
 
 export const fetchAllUsers = AsyncHandler(async (req, res) => {
-  const result = await getAllUsersService();
+  const { page = 1, limit = 10 } = req.query;
+  const result = await getAllUsersService(parseInt(page), parseInt(limit));
   res.status(HTTPSTATUS.OK).json({
     success: true,
     message: result.message,
