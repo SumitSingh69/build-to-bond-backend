@@ -7,7 +7,7 @@ const chatRoomSchema = new mongoose.Schema({
         required: true,
     },
     user2:{
-        type: mongoose.Schema.Types.ObjectId;
+        type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
     },
@@ -24,7 +24,7 @@ const chatRoomSchema = new mongoose.Schema({
         default: 0, 
     },
     lastMessage:{
-        type: mongoose.Schema.Types.ObjectId;
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Chat",
     },
     lastSeen:{
