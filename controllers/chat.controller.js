@@ -23,5 +23,15 @@ export const createNewChatRoom = AsyncHandler(async (req, res) => {
       message: "Chat room already exists",
       data: existingRoom,
     });
+
+    const newRoom = new Chatroom({
+      user1: userId,
+      user2: otherUserId,
+    });
+
+    res.status(201).json({
+      message: "New room created",
+      chatId: newChat._id,
+    });
   }
 });
