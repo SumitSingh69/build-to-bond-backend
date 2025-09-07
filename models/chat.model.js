@@ -28,6 +28,10 @@ const chatSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    seenAt: {
+      type: Date,
+      default: null,
+    },
     deliveredStatus: {
       type: _enum(["sending", "sent", "delivered", "failed"]),
     },

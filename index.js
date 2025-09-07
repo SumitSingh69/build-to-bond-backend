@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
-
+import { app, server } from "./config/socket.config.js";
 import { Env } from "./config/env.config.js";
 import { AsyncHandler } from "./middlewares/AsyncHandler.middleware.js";
 import { HTTPSTATUS } from "./config/Https.config.js";
@@ -12,8 +12,6 @@ import { ErrorHandler } from "./middlewares/ErrorHandler.middleware.js";
 import DatabaseConnect from "./config/database.config.js";
 
 import UserRoute from "./routes/user.route.js";
-
-const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -79,7 +77,7 @@ initializeApp();
 // For Vercel serverless deployment
 if (process.env.NODE_ENV !== "production") {
   const PORT = Env.PORT || 3001;
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT} in ${Env.NODE_ENV} mode`);
   });
 }
