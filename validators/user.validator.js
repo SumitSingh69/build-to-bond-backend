@@ -27,6 +27,22 @@ export const UserRegistrationSchema = z.object({
 });
 
 export const UpdateProfileSchema = z.object({
+  firstName: z
+    .string()
+    .min(2, "First name must be at least 2 characters")
+    .max(50)
+    .optional(),
+  lastName: z
+    .string()
+    .min(2, "Last name must be at least 2 characters")
+    .max(50)
+    .optional(),
+  email: z.string().email("Please enter a valid email address").optional(),
+  phone: z
+    .string()
+    .regex(/^\+?[1-9]\d{1,14}$/, "Please enter a valid phone number")
+    .min(10, "Phone number must be at least 10 digits")
+    .optional(),
   dob: z.coerce
     .date()
     .refine((date) => {

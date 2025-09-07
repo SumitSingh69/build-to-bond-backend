@@ -9,6 +9,8 @@ import {
   deactivateAccountService,
   getAllUsersService,
   findUserByIdService,
+  refreshTokenService,
+  logoutService,
 } from "../services/user.service.js";
 import {
   LoginSchema,
@@ -139,5 +141,32 @@ export const refreshProfile = AsyncHandler(async (req, res) => {
     success: true,
     message: "Profile refreshed successfully",
     data: result,
+  });
+});
+
+export const refreshToken = AsyncHandler(async (req, res) => {
+  const { refreshToken } = req.body;
+  
+  if (!refreshToken) {
+    return res.status(HTTPSTATUS.BAD_REQUEST).json({
+      success: false,
+      message: "Refresh token is required",
+    });
+  }
+
+  const result = await refreshTokenService(refreshToken);
+  res.status(HTTPSTATUS.OK).json({
+    success: true,
+    message: "Tokens refreshed successfully",
+    data: result,
+  });
+});
+
+export const logoutUser = AsyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const result = await logoutService(userId);
+  res.status(HTTPSTATUS.OK).json({
+    success: true,
+    message: result.message,
   });
 });

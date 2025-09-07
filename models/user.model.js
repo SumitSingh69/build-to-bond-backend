@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 import { hashPassword } from "../utils/bcrypt.js";
 
 const userSchema = new mongoose.Schema(
@@ -198,6 +199,53 @@ const userSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
+    refreshToken: {
+      type: String,
+      select: false,
+    },
+    refreshTokenExpiresAt: {
+      type: Date,
+      select: false,
+    },
+    // Additional missing fields for dating app
+    genderPreference: {
+      type: String,
+      enum: ["men", "women", "both", "other"],
+      default: "other",
+    },
+    profileViews: {
+      type: Number,
+      default: 0,
+    },
+    totalSwipes: {
+      type: Number,
+      default: 0,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationBadges: [{
+      type: {
+        type: String,
+        enum: ["email", "phone", "photo", "social"],
+      },
+      verifiedAt: {
+        type: Date,
+        default: Date.now,
+      }
+    }],
+    deviceTokens: [{
+      token: String,
+      platform: {
+        type: String,
+        enum: ["ios", "android", "web"],
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      }
+    }],
   },
   {
     timestamps: true,
@@ -241,7 +289,33 @@ userSchema.methods.calculateProfileCompleteness = function () {
 userSchema.methods.omitPassword = function () {
   const userObject = this.toObject();
   delete userObject.password;
+  delete userObject.refreshToken;
+  delete userObject.refreshTokenExpiresAt;
   return userObject;
+};
+
+userSchema.methods.generateRefreshToken = function () {
+  const refreshToken = crypto.randomBytes(64).toString('hex');
+  
+  // Refresh token expires in 7 days
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7);
+  
+  this.refreshToken = refreshToken;
+  this.refreshTokenExpiresAt = expiresAt;
+  
+  return refreshToken;
+};
+
+userSchema.methods.isRefreshTokenValid = function (token) {
+  return this.refreshToken === token && 
+         this.refreshTokenExpiresAt && 
+         new Date() < this.refreshTokenExpiresAt;
+};
+
+userSchema.methods.clearRefreshToken = function () {
+  this.refreshToken = undefined;
+  this.refreshTokenExpiresAt = undefined;
 };
 
 userSchema.index({ email: 1 }, { unique: true });

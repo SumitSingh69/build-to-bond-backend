@@ -69,17 +69,21 @@ export const loginService = async (credentials) => {
     }
 
     user.lastActive = new Date();
-    await user.save();
-
-    const token = jwt.sign({ userId: user._id.toString() }, Env.JWT_SECRET, {
+    
+    // Generate both access and refresh tokens
+    const accessToken = jwt.sign({ userId: user._id.toString() }, Env.JWT_SECRET, {
       expiresIn: Env.JWT_EXPIRES_IN,
     });
+    
+    const refreshToken = user.generateRefreshToken();
+    await user.save();
 
     const userObj = user.omitPassword();
 
     return {
       user: userObj,
-      accessToken: token,
+      accessToken,
+      refreshToken,
       expiresAt: Env.JWT_EXPIRES_IN,
       profileCompleteness: user.profileCompleteness,
     };
@@ -277,6 +281,70 @@ export const deactivateAccountService = async (userId) => {
 
     return {
       message: "Account deactivated successfully",
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const refreshTokenService = async (refreshToken) => {
+  try {
+    if (!refreshToken) {
+      throw new UnauthorizedException("Refresh token is required");
+    }
+
+    const user = await User.findOne({
+      refreshToken,
+      isActive: true,
+    }).select("+refreshToken +refreshTokenExpiresAt");
+
+    if (!user) {
+      throw new UnauthorizedException("Invalid refresh token");
+    }
+
+    if (!user.isRefreshTokenValid(refreshToken)) {
+      // Clear invalid refresh token
+      user.clearRefreshToken();
+      await user.save();
+      throw new UnauthorizedException("Refresh token has expired");
+    }
+
+    // Generate new access token
+    const accessToken = jwt.sign({ userId: user._id.toString() }, Env.JWT_SECRET, {
+      expiresIn: Env.JWT_EXPIRES_IN,
+    });
+
+    // Generate new refresh token for rotation
+    const newRefreshToken = user.generateRefreshToken();
+    user.lastActive = new Date();
+    await user.save();
+
+    const userObj = user.omitPassword();
+
+    return {
+      user: userObj,
+      accessToken,
+      refreshToken: newRefreshToken,
+      expiresAt: Env.JWT_EXPIRES_IN,
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const logoutService = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+
+    user.clearRefreshToken();
+    await user.save();
+
+    return {
+      message: "Logged out successfully",
     };
   } catch (error) {
     throw error;
