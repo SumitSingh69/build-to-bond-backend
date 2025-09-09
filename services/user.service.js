@@ -69,12 +69,16 @@ export const loginService = async (credentials) => {
     }
 
     user.lastActive = new Date();
-    
+
     // Generate both access and refresh tokens
-    const accessToken = jwt.sign({ userId: user._id.toString() }, Env.JWT_SECRET, {
-      expiresIn: Env.JWT_EXPIRES_IN,
-    });
-    
+    const accessToken = jwt.sign(
+      { userId: user._id.toString() },
+      Env.JWT_SECRET,
+      {
+        expiresIn: Env.JWT_EXPIRES_IN,
+      }
+    );
+
     const refreshToken = user.generateRefreshToken();
     await user.save();
 
@@ -310,9 +314,13 @@ export const refreshTokenService = async (refreshToken) => {
     }
 
     // Generate new access token
-    const accessToken = jwt.sign({ userId: user._id.toString() }, Env.JWT_SECRET, {
-      expiresIn: Env.JWT_EXPIRES_IN,
-    });
+    const accessToken = jwt.sign(
+      { userId: user._id.toString() },
+      Env.JWT_SECRET,
+      {
+        expiresIn: Env.JWT_EXPIRES_IN,
+      }
+    );
 
     // Generate new refresh token for rotation
     const newRefreshToken = user.generateRefreshToken();
@@ -335,7 +343,7 @@ export const refreshTokenService = async (refreshToken) => {
 export const logoutService = async (userId) => {
   try {
     const user = await User.findById(userId);
-    
+
     if (!user) {
       throw new UnauthorizedException("User not found");
     }
@@ -346,6 +354,18 @@ export const logoutService = async (userId) => {
     return {
       message: "Logged out successfully",
     };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getUserData = async (userId) => {
+  try {
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    return user;
   } catch (error) {
     throw error;
   }
