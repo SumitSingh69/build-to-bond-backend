@@ -14,6 +14,13 @@ import {
   refreshToken,
   logoutUser,
 } from "../controllers/user.controller.js";
+
+import {
+  createNewChatRoom,
+  getAllChats,
+  getMessagesByChatRoomId,
+  sendMessage,
+} from "../controllers/chat.controller.js";
 import { IsAuthenticated } from "../middlewares/Auth.middleware.js";
 
 const router = express.Router();

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { maxLength } from "zod";
-import { _enum, _max } from "zod/v4/core";
+// import { _enum, _max } from "zod/v4/core";
 
 const chatSchema = new mongoose.Schema(
   {
@@ -12,7 +12,6 @@ const chatSchema = new mongoose.Schema(
     reciever: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
     message: {
       type: String,
@@ -33,10 +32,12 @@ const chatSchema = new mongoose.Schema(
       default: null,
     },
     deliveredStatus: {
-      type: _enum(["sending", "sent", "delivered", "failed"]),
+      type: String,
+      enum: ["sending", "sent", "delivered", "failed"],
     },
     messageType: {
-      type: _enum(["text", "image", "audio"]),
+      type: String,
+      enum: ["text", "image", "audio"],
       default: "text",
     },
     roomId: {

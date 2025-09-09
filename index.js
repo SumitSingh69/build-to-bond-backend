@@ -12,6 +12,7 @@ import { ErrorHandler } from "./middlewares/ErrorHandler.middleware.js";
 import DatabaseConnect from "./config/database.config.js";
 
 import UserRoute from "./routes/user.route.js";
+import ChatRoute from "./routes/chat.route.js";
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -52,6 +53,7 @@ app.get(
 );
 
 app.use(`${BASE_PATH}/v1/users`, UserRoute);
+app.use(`${BASE_PATH}/v1/chat`, ChatRoute);
 // app.use(`${BASE_PATH}/v1`, HealthRoute);
 // app.use(`${BASE_PATH}/v1/events`, EventRoute);
 // app.use(`${BASE_PATH}/v1/teams`, TeamRoute);

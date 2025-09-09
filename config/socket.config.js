@@ -12,7 +12,9 @@ const io = new Server(server, {
   },
 });
 const userSocketMap = {};
-
+export const getRecieverSocketId = (recieverId) => {
+  return userSocketMap[recieverId];
+};
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
 
@@ -22,7 +24,9 @@ io.on("connection", (socket) => {
   }
   io.emit("getOnlineUser", Object.keys(userSocketMap));
   console.log(`User connected: ${socket.id}`);
-
+  if (userId) {
+    socket.join(userId);
+  }
   socket.on("typing", (data) => {
     console.log(`User ${data.userId} is typing in chat ${data.roomId}`);
     socket.to(data.roomId).emit("userTyping", {
@@ -62,4 +66,4 @@ io.on("connection", (socket) => {
   });
 });
 
-export { app, server };
+export { app, server, io };
