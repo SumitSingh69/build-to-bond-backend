@@ -1,4 +1,4 @@
-import Chatroom from "../models/chatroom.model.js";
+import Chatroom from "../models/chatRoom.model.js";
 import Chat from "../models/chat.model.js";
 
 export const findChatRoomByUserIdsService = async (userId, recieverId) => {
