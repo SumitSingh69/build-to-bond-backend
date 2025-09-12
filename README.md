@@ -14,17 +14,17 @@ A Node.js/Express backend API for a dating application with user authentication,
 
 ## Tech Stack
 
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Database**: MongoDB with Mongoose
-- **Authentication**: JWT (JSON Web Tokens)
-- **Password Hashing**: bcrypt
-- **Validation**: Zod
-- **Environment**: dotenv
+- *Runtime*: Node.js
+- *Framework*: Express.js
+- *Database*: MongoDB with Mongoose
+- *Authentication*: JWT (JSON Web Tokens)
+- *Password Hashing*: bcrypt
+- *Validation*: Zod
+- *Environment*: dotenv
 
 ## Architecture Diagram
 
-```mermaid
+mermaid
 graph TB
     Client[Client Application] --> Router[Express Router]
     Router --> AuthMW[Auth Middleware]
@@ -66,11 +66,20 @@ graph TB
         ProfileController --> ProfileService[Profile Service]
         ProfileService --> UpdateUser[Update User Model]
     end
-```
+    
+    subgraph "Chat Flow"
+        SocketConn[User Socket Connection] --> ChatGateway[Socket.IO Server]
+        ChatGateway --> ChatRoomController[Chat Room Controller]
+        ChatGateway --> ChatController[Chatting Controller]
+        ChatRoomController --> ChatRoomModel[Chat Room Model]
+        ChatController --> MessageModel[Message Model]
+    end
+
+
 
 ## API Flow Diagram
 
-```mermaid
+mermaid
 sequenceDiagram
     participant C as Client
     participant R as Router
@@ -120,11 +129,11 @@ sequenceDiagram
     DB-->>S: Updated user
     S-->>Ctrl: Updated user object
     Ctrl-->>C: Profile updated
-```
+
 
 ## Database Schema Diagram
 
-```mermaid
+mermaid
 erDiagram
     USER {
         ObjectId _id PK
@@ -150,17 +159,17 @@ erDiagram
     }
     
     USER ||--o{ USER : matches
-```
+
 
 ### Schema Details
 
-- **agePreferences**: `{ min: Number, max: Number }`
-- **socialLinks**: `{ instagram, facebook, twitter, linkedin }`
-- **subscription**: `"free" | "solara"`
-- **privacy**: `"public" | "private"`
-- **gender**: `"male" | "female" | "other"`
-- **lookingFor**: `"friendship" | "relationship" | "casual" | "other"`
-```
+- *agePreferences*: { min: Number, max: Number }
+- *socialLinks*: { instagram, facebook, twitter, linkedin }
+- *subscription*: "free" | "solara"
+- *privacy*: "public" | "private"
+- *gender*: "male" | "female" | "other"
+- *lookingFor*: "friendship" | "relationship" | "casual" | "other"
+
 
 ## Project Structure
 
@@ -193,14 +202,14 @@ backend/
 ├── index.js                  # Application entry point
 ├── package.json              # Dependencies and scripts
 └── README.md                 # Project documentation
-```
+
 
 ## API Endpoints
 
 ### Authentication
 
 #### Register User
-```http
+http
 POST /api/users/register
 Content-Type: application/json
 
@@ -210,10 +219,10 @@ Content-Type: application/json
   "email": "john.doe@example.com",
   "password": "SecurePass123!"
 }
-```
+
 
 #### Login User
-```http
+http
 POST /api/users/login
 Content-Type: application/json
 
@@ -221,12 +230,12 @@ Content-Type: application/json
   "email": "john.doe@example.com",
   "password": "SecurePass123!"
 }
-```
+
 
 ### Profile Management
 
 #### Update Profile
-```http
+http
 PUT /api/users/profile
 Authorization: Bearer <jwt_token>
 Content-Type: application/json
@@ -249,80 +258,80 @@ Content-Type: application/json
   "privacy": "public",
   "lookingFor": "relationship"
 }
-```
+
 
 ## User Schema
 
 ### Required Fields (Registration)
-- `firstName` - String (2-50 characters)
-- `lastName` - String (2-50 characters)
-- `email` - Valid email address (unique)
-- `password` - String (min 8 chars, must include uppercase, lowercase, number, special char)
+- firstName - String (2-50 characters)
+- lastName - String (2-50 characters)
+- email - Valid email address (unique)
+- password - String (min 8 chars, must include uppercase, lowercase, number, special char)
 
 ### Optional Fields (Profile Update)
-- `dob` - Date of birth
-- `gender` - Enum: ['male', 'female', 'other']
-- `bio` - String (max 500 characters)
-- `interests` - Array of strings
-- `profilePicture` - String (image URL)
-- `avatar` - String (AI-generated avatar URL)
-- `location` - String
-- `agePreferences` - Object with min/max age (18-99)
-- `socialLinks` - Object with social media profiles
-- `subscription` - Enum: ['free', 'solara'] (default: 'free')
-- `privacy` - Enum: ['public', 'private'] (default: 'public')
-- `lookingFor` - Enum: ['friendship', 'relationship', 'casual', 'other']
+- dob - Date of birth
+- gender - Enum: ['male', 'female', 'other']
+- bio - String (max 500 characters)
+- interests - Array of strings
+- profilePicture - String (image URL)
+- avatar - String (AI-generated avatar URL)
+- location - String
+- agePreferences - Object with min/max age (18-99)
+- socialLinks - Object with social media profiles
+- subscription - Enum: ['free', 'solara'] (default: 'free')
+- privacy - Enum: ['public', 'private'] (default: 'public')
+- lookingFor - Enum: ['friendship', 'relationship', 'casual', 'other']
 
 ### System Fields
-- `matches` - Array of user IDs
-- `isActive` - Boolean (default: true)
-- `createdAt` - Timestamp
+- matches - Array of user IDs
+- isActive - Boolean (default: true)
+- createdAt - Timestamp
 
 ## Environment Variables
 
-Create a `.env` file in the backend directory:
+Create a .env file in the backend directory:
 
-```env
+env
 NODE_ENV=development
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/dating-app
 JWT_SECRET=your-super-secret-jwt-key
 JWT_EXPIRES_IN=7d
-```
+
 
 ## Installation & Setup
 
-1. **Clone the repository**
-   ```bash
+1. *Clone the repository*
+   bash
    git clone <repository-url>
    cd backend
-   ```
+   
 
-2. **Install dependencies**
-   ```bash
+2. *Install dependencies*
+   bash
    npm install
-   ```
+   
 
-3. **Set up environment variables**
-   ```bash
+3. *Set up environment variables*
+   bash
    cp .env.example .env
    # Edit .env with your configuration
-   ```
+   
 
-4. **Start MongoDB**
-   ```bash
+4. *Start MongoDB*
+   bash
    # Make sure MongoDB is running on your system
    mongod
-   ```
+   
 
-5. **Run the application**
-   ```bash
+5. *Run the application*
+   bash
    # Development mode
    npm run dev
 
    # Production mode
    npm start
-   ```
+   
 
 ## Password Requirements
 
@@ -337,11 +346,11 @@ The API enforces strong password policies:
 
 The API uses custom error classes and middleware for consistent error responses:
 
-- `AppError` - Base error class
-- `UnauthorizedException` - 401 errors
-- `NotFoundException` - 404 errors
-- `BadRequestException` - 400 errors
-- `InternalServerException` - 500 errors
+- AppError - Base error class
+- UnauthorizedException - 401 errors
+- NotFoundException - 404 errors
+- BadRequestException - 400 errors
+- InternalServerException - 500 errors
 
 ## Security Features
 
@@ -354,9 +363,9 @@ The API uses custom error classes and middleware for consistent error responses:
 ## Development
 
 ### Scripts
-- `npm start` - Start production server
-- `npm run dev` - Start development server with nodemon
-- `npm test` - Run tests (if configured)
+- npm start - Start production server
+- npm run dev - Start development server with nodemon
+- npm test - Run tests (if configured)
 
 ### Code Style
 - ES6 modules
