@@ -1,5 +1,5 @@
 import { AsyncHandler } from "../middlewares/AsyncHandler.middleware.js";
-import Chatroom from "../models/chatroom.model.js";
+import Chatroom from "../models/chatRoom.model.js";
 import Chat from "../models/chat.model.js";
 import { getRecieverSocketId, io } from "../config/socket.config.js";
 import { HTTPSTATUS } from "../config/Https.config.js";
