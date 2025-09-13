@@ -53,11 +53,84 @@ export const updateProfile = AsyncHandler(async (req, res) => {
 });
 
 export const fetchAllUsers = AsyncHandler(async (req, res) => {
-  const { page = 1, limit = 5 } = req.query;
+  const body = UpdateProfileSchema.parse(req.query);
+  const {
+    page = 1,
+    limit = 10,
+    ageMin,
+    ageMax,
+    genderPreference,
+    lookingFor,
+    heightMin,
+    heightMax,
+    education,
+    smoking,
+    drinking,
+    children,
+    relationshipStatus,
+    interests,
+    religion,
+    languages,
+    isVerified,
+    lastActiveWithin,
+    minProfileCompleteness,
+    city,
+    country,
+  } = body;
+
+  const filters = {};
+
+  filters._id = { $ne: req.user._id };
+  if (ageMin || ageMax) {
+    const now = new Date();
+    const minDOB = new Date(now.setFullYear(now.getFullYear() - ageMax));
+    const maxDOB = new Date(
+      new Date().setFullYear(new Date().getFullYear() - ageMin)
+    );
+    filters.dateOfBirth = {};
+    if (ageMin) filters.dob.$lte = maxDOB;
+    if (ageMax) filters.dob.$gte = minDOB;
+  }
+  if (genderPreference) filters.gender = genderPreference;
+  if (lookingFor) filters.lookingFor = lookingFor;
+  if (heightMin || heightMax) {
+    filters.height = {};
+    if (heightMin) filters.height.$gte = Number(heightMin);
+    if (heightMax) filters.height.$lte = Number(heightMax);
+  }
+  if (education) filters.education = { $in: education.split(",") };
+  if (smoking) filters.smoking = { $in: smoking.split(",") };
+  if (drinking) filters.drinking = { $in: drinking.split(",") };
+  if (children) filters.children = { $in: children.split(",") };
+  if (relationshipStatus) filters.relationshipStatus = relationshipStatus;
+  if (interests) filters.interests = { $in: interests.split(",") };
+  if (religion) filters.religion = religion;
+  if (languages) filters.languages = { $in: languages.split(",") };
+
+  if (isVerified) filters.isVerified = isVerified === "true";
+
+  // Last active filter
+  if (lastActiveWithin) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - Number(lastActiveWithin));
+    filters.lastActive = { $gte: cutoff };
+  }
+
+  // Profile completeness
+  if (minProfileCompleteness) {
+    filters.profileCompleteness = { $gte: Number(minProfileCompleteness) };
+  }
+
+  // Location filter (if you store geo coords as { type: "Point", coordinates: [lng, lat] })
+  if (city || country) {
+    if (city) filters.city = city;
+    if (country) filters.country = country;
+  }
+
   const result = await getAllUsersService(
     parseInt(page),
     parseInt(limit),
-    req.user._id
+    filters
   );
   res.status(HTTPSTATUS.OK).json({
     success: true,
