@@ -31,18 +31,46 @@ io.on("connection", (socket) => {
   }
   socket.on("typing", (data) => {
     console.log(`User ${data.userId} is typing in chat ${data.roomId}`);
+    // Emit to all users in the room
     socket.to(data.roomId).emit("userTyping", {
       roomId: data.roomId,
       userId: data.userId,
     });
+    
+    // Also emit to other users specifically (backup method)
+    const roomSockets = io.sockets.adapter.rooms.get(data.roomId);
+    if (roomSockets) {
+      roomSockets.forEach(socketId => {
+        if (socketId !== socket.id) {
+          io.to(socketId).emit("userTyping", {
+            roomId: data.roomId,
+            userId: data.userId,
+          });
+        }
+      });
+    }
   });
 
   socket.on("stopTyping", (data) => {
     console.log(`User ${data.userId} stopped typing in chat ${data.roomId}`);
+    // Emit to all users in the room
     socket.to(data.roomId).emit("userStoppedTyping", {
       roomId: data.roomId,
       userId: data.userId,
     });
+    
+    // Also emit to other users specifically (backup method)
+    const roomSockets = io.sockets.adapter.rooms.get(data.roomId);
+    if (roomSockets) {
+      roomSockets.forEach(socketId => {
+        if (socketId !== socket.id) {
+          io.to(socketId).emit("userStoppedTyping", {
+            roomId: data.roomId,
+            userId: data.userId,
+          });
+        }
+      });
+    }
   });
 
   socket.on("joinChat", (roomId) => {
@@ -53,6 +81,22 @@ io.on("connection", (socket) => {
   socket.on("leaveChat", (roomId) => {
     socket.leave(roomId);
     console.log(`User ${userId} left chat room ${roomId}`);
+  });
+
+  // Handle real-time message sending
+  socket.on("sendMessage", (data) => {
+    console.log(`Message from ${data.senderId} in room ${data.roomId}:`, data.message);
+    // Broadcast to room (this is for immediate feedback, actual save happens via API)
+    socket.to(data.roomId).emit("newMessage", {
+      _id: Date.now().toString(), // Temporary ID until API saves
+      sender: data.senderId,
+      message: data.message,
+      messageType: data.messageType || 'text',
+      roomId: data.roomId,
+      createdAt: new Date().toISOString(),
+      seenStatus: false,
+      deliveredStatus: 'sent'
+    });
   });
 
   socket.on("disconnect", () => {
