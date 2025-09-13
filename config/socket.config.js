@@ -23,6 +23,7 @@ io.on("connection", (socket) => {
     userSocketMap[userId] = socket.id;
     console.log(`User ${userId} mapped to socket ${socket.id}`);
   }
+
   io.emit("getOnlineUser", Object.keys(userSocketMap));
   console.log(`User connected: ${socket.id}`);
   if (userId) {

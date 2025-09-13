@@ -53,12 +53,20 @@ export const updateProfile = AsyncHandler(async (req, res) => {
 });
 
 export const fetchAllUsers = AsyncHandler(async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 5 } = req.query;
   const result = await getAllUsersService(parseInt(page), parseInt(limit));
   res.status(HTTPSTATUS.OK).json({
     success: true,
     message: result.message,
     data: result.users,
+    page: result.page,
+    limit: result.limit,
+    totalPages: result.totalPages,
+    totalUsers: result.totalUsers,
+    hasNextPage: result.hasNextPage,
+    hasPreviousPage: result.hasPreviousPage,
+    nextPage: result.hasNextPage ? page + 1 : null,
+    prevPage: result.hasPreviousPage ? page - 1 : null,
   });
 });
 
@@ -146,7 +154,7 @@ export const refreshProfile = AsyncHandler(async (req, res) => {
 
 export const refreshToken = AsyncHandler(async (req, res) => {
   const { refreshToken } = req.body;
-  
+
   if (!refreshToken) {
     return res.status(HTTPSTATUS.BAD_REQUEST).json({
       success: false,
