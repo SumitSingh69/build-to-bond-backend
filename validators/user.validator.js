@@ -168,15 +168,15 @@ export const LocationUpdateSchema = z.object({
 });
 export const getAllUserSchema = z
   .object({
-    page: z.number().min(1).optional().default(1),
-    limit: z.number().min(1).max(100).optional().default(10),
-    ageMin: z.number().min(18).max(60).optional(),
-    ageMax: z.number().min(18).max(60).optional(),
+    page: z.coerce.number().min(1).optional().default(1),
+    limit: z.coerce.number().min(1).max(100).optional().default(10),
+    ageMin: z.coerce.number().min(18).max(60).optional(),
+    ageMax: z.coerce.number().min(18).max(60).optional(),
 
     lookingFor: z.string().optional(),
 
-    heightMin: z.number().min(100).max(250).optional(),
-    heightMax: z.number().min(100).max(250).optional(),
+    heightMin: z.coerce.number().min(100).max(250).optional(),
+    heightMax: z.coerce.number().min(100).max(250).optional(),
 
     education: z
       .string()
@@ -198,8 +198,8 @@ export const getAllUserSchema = z
       .optional(),
 
     isVerified: z.preprocess((val) => val === "true", z.boolean()).optional(),
-    lastActiveWithin: z.number().min(1).optional(),
-    minProfileCompleteness: z.number().min(0).max(100).optional(),
+    lastActiveWithin: z.coerce.number().min(1).optional(),
+    minProfileCompleteness: z.coerce.number().min(0).max(100).optional(),
 
     city: z.string().optional(),
     country: z.string().optional(),
