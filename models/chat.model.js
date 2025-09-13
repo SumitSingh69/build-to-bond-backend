@@ -17,8 +17,9 @@ const chatSchema = new mongoose.Schema(
       type: String,
       maxLength: 500,
     },
-    imageUrl: {
-      type: String,
+    image: {
+      url: String,
+      publicId: String,
     },
     audioUrl: {
       type: String,

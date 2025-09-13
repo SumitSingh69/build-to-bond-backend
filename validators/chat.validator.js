@@ -6,8 +6,8 @@ export const createNewChatRoomSchema = z.object({
 
 export const sendMessageSchema = z.object({
   roomId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid ObjectId"),
-  text: z.string().min(1, "Message cannot be empty"),
-  imageFile: z.any().optional(),
+  text: z.string().optional(),
+  file: z.any().optional(),
 });
 
 export const getMessagesByChatRoomIdSchema = z.object({
