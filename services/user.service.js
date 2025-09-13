@@ -153,7 +153,7 @@ export const updateProfileService = async (userId, profileData) => {
   }
 };
 
-export const getAllUsersService = async (page, limit, userId) => {
+export const getAllUsersService = async (page, limit, filters) => {
   try {
     if (page < 1 || limit < 1 || limit > 100) {
       throw new BadRequestException("Invalid page or limit value");
@@ -164,13 +164,13 @@ export const getAllUsersService = async (page, limit, userId) => {
       throw new BadRequestException("Page number exceeds total pages");
     }
     const skip = (page - 1) * limit;
-    const users = await User.find({ _id: { $ne: userId } })
+    const users = await User.find(filters)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .select("-password");
     if (users.length === 0) {
-      throw NotFoundException("No users found");
+      throw new NotFoundException("No users found");
     }
     const hasNextPage = page < totalPages;
     const hasPreviousPage = page > 1;
