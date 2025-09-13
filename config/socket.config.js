@@ -37,7 +37,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("stopTyping", (data) => {
-    console.log(`User ${data.userId} stopped typing in chat ${data.chatId}`);
+    console.log(`User ${data.userId} stopped typing in chat ${data.roomId}`);
     socket.to(data.roomId).emit("userStoppedTyping", {
       roomId: data.roomId,
       userId: data.userId,
