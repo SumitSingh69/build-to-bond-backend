@@ -168,6 +168,7 @@ export const LocationUpdateSchema = z.object({
 });
 export const getAllUserSchema = z
   .object({
+
     page: z.coerce.number().min(1).optional().default(1),
     limit: z.coerce.number().min(1).max(100).optional().default(10),
     ageMin: z.coerce.number().min(18).max(60).optional(),
@@ -198,6 +199,7 @@ export const getAllUserSchema = z
       .optional(),
 
     isVerified: z.preprocess((val) => val === "true", z.boolean()).optional(),
+
     lastActiveWithin: z.coerce.number().min(1).optional(),
     minProfileCompleteness: z.coerce.number().min(0).max(100).optional(),
 
