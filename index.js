@@ -68,20 +68,20 @@ const initializeApp = async () => {
   try {
     await DatabaseConnect();
     console.log(`Database connected in ${Env.NODE_ENV} mode.`);
+    
+    const PORT = Env.PORT || 3001;
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server is running on port ${PORT} in ${Env.NODE_ENV} mode`);
+      console.log(`Server accessible at: http://0.0.0.0:${PORT}`);
+      console.log(`API Base Path: ${BASE_PATH}`);
+    });
+    
   } catch (error) {
     console.error("Failed to initialize app:", error);
+    process.exit(1);
   }
 };
 
-// Initialize database connection
 initializeApp();
-
-// For Vercel serverless deployment
-if (process.env.NODE_ENV !== "production") {
-  const PORT = Env.PORT || 5000;
-  server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT} in ${Env.NODE_ENV} mode`);
-  });
-}
 
 export default app;
