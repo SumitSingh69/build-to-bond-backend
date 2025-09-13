@@ -59,23 +59,35 @@ export const getAllChats = AsyncHandler(async (req, res) => {
 
   const chatWithUserData = await Promise.all(
     chats.map(async (chat) => {
-      const otherUserId = chat.users.find((id) => id !== userId);
+      const otherUserId = chat.users.find((id) => id.toString() !== userId.toString());
 
       const unseenCount = await getUnseenMessagesCountService(userId, chat._id);
       try {
-        //get the otherUserId's data
+        
         const result = await findUserByIdService(otherUserId);
-        const data = result.user;
-        console.log(chat);
-        // photo , first name , last name , lastMessage
+        const otherUserData = result.user;
+        
         return {
           chat: {
             ...chat.toObject(),
             lastMessage: chat.lastMessage || null,
-            profilePhoto: data?.profilePicture || null,
-            firstName: data?.firstName || "Unknown",
-            lastName: data?.lastName || "User",
             unseenCount: unseenCount,
+
+            currentUser: {
+              id: userId.toString(),
+              role: "currentUser"
+            },
+            otherUser: {
+              id: otherUserId.toString(),
+              firstName: otherUserData?.firstName || "Unknown",
+              lastName: otherUserData?.lastName || "User",
+              profilePhoto: otherUserData?.profilePicture || otherUserData?.avatar || null,
+              role: "otherUser"
+            },
+
+            profilePhoto: otherUserData?.profilePicture || otherUserData?.avatar || null,
+            firstName: otherUserData?.firstName || "Unknown",
+            lastName: otherUserData?.lastName || "User",
           },
         };
       } catch (error) {
@@ -84,16 +96,30 @@ export const getAllChats = AsyncHandler(async (req, res) => {
           chat: {
             ...chat.toObject(),
             lastMessage: chat.lastMessage || null,
+            unseenCount: unseenCount,
+
+            currentUser: {
+              id: userId.toString(),
+              role: "currentUser"
+            },
+            otherUser: {
+              id: otherUserId?.toString() || "unknown",
+              firstName: "Unknown",
+              lastName: "User",
+              profilePhoto: null,
+              role: "otherUser"
+            },
+
             profilePhoto: null,
             firstName: "Unknown",
             lastName: "User",
-            unseenCount: unseenCount,
           },
         };
       }
     })
   );
   res.json({
+    success: true,
     chats: chatWithUserData,
   });
 });
@@ -252,10 +278,10 @@ export const getMessagesByChatRoomId = AsyncHandler(async (req, res) => {
 
   const messages = await getAllChatsByIdService(roomId);
 
-  const otherUserId = room.users.find((id) => id !== userId);
+  const otherUserId = room.users.find((id) => id.toString() !== userId.toString());
   try {
     const info = await findUserByIdService(otherUserId);
-    const data = info.user;
+    const otherUserData = info.user;
 
     if (!otherUserId) {
       res.status(HTTPSTATUS.BAD_REQUEST).json({
@@ -277,14 +303,46 @@ export const getMessagesByChatRoomId = AsyncHandler(async (req, res) => {
     }
 
     res.json({
+      success: true,
       messages,
-      user: data,
+      room: {
+        id: roomId,
+        currentUser: {
+          id: userId.toString(),
+          role: "currentUser"
+        },
+        otherUser: {
+          id: otherUserId.toString(),
+          firstName: otherUserData?.firstName || "Unknown",
+          lastName: otherUserData?.lastName || "User",
+          profilePicture: otherUserData?.profilePicture || otherUserData?.avatar || null,
+          role: "otherUser"
+        }
+      },
+      // Legacy field for backward compatibility
+      user: otherUserData,
     });
   } catch (error) {
     console.log(error);
     res.json({
+      success: false,
       messages,
-      user: { _id: otherUserId, name: "Unknown User" },
+      room: {
+        id: roomId,
+        currentUser: {
+          id: userId.toString(),
+          role: "currentUser"
+        },
+        otherUser: {
+          id: otherUserId?.toString() || "unknown",
+          firstName: "Unknown",
+          lastName: "User",
+          profilePicture: null,
+          role: "otherUser"
+        }
+      },
+      // Legacy field for backward compatibility
+      user: { _id: otherUserId, firstName: "Unknown", lastName: "User" },
     });
   }
 });

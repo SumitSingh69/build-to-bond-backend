@@ -133,6 +133,7 @@ export const fetchAllUsers = AsyncHandler(async (req, res) => {
     parseInt(limit),
     filters
   );
+
   res.status(HTTPSTATUS.OK).json({
     success: true,
     message: result.message,
