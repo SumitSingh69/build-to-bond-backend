@@ -18,6 +18,7 @@ import {
   UpdateProfileSchema,
   PasswordChangeSchema,
   LocationUpdateSchema,
+  getAllUserSchema,
 } from "../validators/user.validator.js";
 import { HTTPSTATUS } from "../config/Https.config.js";
 
@@ -53,7 +54,7 @@ export const updateProfile = AsyncHandler(async (req, res) => {
 });
 
 export const fetchAllUsers = AsyncHandler(async (req, res) => {
-  const body = UpdateProfileSchema.parse(req.query);
+  const body = getAllUserSchema.parse(req.query);
   const {
     page = 1,
     limit = 10,
