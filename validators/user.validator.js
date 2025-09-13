@@ -166,3 +166,54 @@ export const LocationUpdateSchema = z.object({
   city: z.string().trim().optional(),
   country: z.string().trim().optional(),
 });
+export const getAllUserSchema = z
+  .object({
+    page: z.number().min(1).optional().default(1),
+    limit: z.number().min(1).max(100).optional().default(10),
+    ageMin: z.number().min(18).max(60).optional(),
+    ageMax: z.number().min(18).max(60).optional(),
+
+    lookingFor: z.string().optional(),
+
+    heightMin: z.number().min(100).max(250).optional(),
+    heightMax: z.number().min(100).max(250).optional(),
+
+    education: z
+      .string()
+      .transform((val) => val.split(","))
+      .optional(),
+    smoking: z.enum(["never", "sometimes", "regular"]).optional(),
+    drinking: z.enum(["never", "socially", "often"]).optional(),
+    children: z.enum(["none", "want_children", "have_children"]).optional(),
+    relationshipStatus: z.enum(["single", "married", "complicated"]).optional(),
+
+    interests: z
+      .string()
+      .transform((val) => val.split(","))
+      .optional(),
+    religion: z.string().optional(),
+    languages: z
+      .string()
+      .transform((val) => val.split(","))
+      .optional(),
+
+    isVerified: z.preprocess((val) => val === "true", z.boolean()).optional(),
+    lastActiveWithin: z.number().min(1).optional(),
+    minProfileCompleteness: z.number().min(0).max(100).optional(),
+
+    city: z.string().optional(),
+    country: z.string().optional(),
+  })
+  .refine(
+    (data) => !data.ageMin || !data.ageMax || data.ageMin <= data.ageMax,
+    {
+      message: "Minimum age must be less than or equal to maximum age",
+    }
+  )
+  .refine(
+    (data) =>
+      !data.heightMin || !data.heightMax || data.heightMin <= data.heightMax,
+    {
+      message: "Minimum height must be less than or equal to maximum height",
+    }
+  );
