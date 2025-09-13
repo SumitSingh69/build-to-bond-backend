@@ -39,7 +39,7 @@ export const createNewChatRoom = AsyncHandler(async (req, res) => {
   const newRoom = new Chatroom({
     users: [userId, recieverId],
   });
-  newRoom.save();
+  await newRoom.save();
 
   res.status(HTTPSTATUS.CREATED).json({
     message: "New room created",
@@ -64,7 +64,8 @@ export const getAllChats = AsyncHandler(async (req, res) => {
       const unseenCount = await getUnseenMessagesCountService(userId, chat._id);
       try {
         //get the otherUserId's data
-        const data = await getAllUsersService(otherUserId);
+        const result = await findUserByIdService(otherUserId);
+        const data = result.user;
         console.log(chat);
         // photo , first name , last name , lastMessage
         return {
@@ -80,11 +81,13 @@ export const getAllChats = AsyncHandler(async (req, res) => {
       } catch (error) {
         console.log(error);
         return {
-          user: { _id: otherUserId, name: "Unknown User" },
           chat: {
             ...chat.toObject(),
-            latestMessage: chat.latestMessage || null,
-            unseenCount,
+            lastMessage: chat.lastMessage || null,
+            profilePhoto: null,
+            firstName: "Unknown",
+            lastName: "User",
+            unseenCount: unseenCount,
           },
         };
       }
@@ -144,7 +147,7 @@ export const sendMessage = AsyncHandler(async (req, res) => {
   );
 
   if (!otherUserId) {
-    res.status(HTTPS.UNAUTHORIZED).json({
+    res.status(HTTPSTATUS.UNAUTHORIZED).json({
       message: "No other user",
     });
     return;
@@ -235,7 +238,7 @@ export const getMessagesByChatRoomId = AsyncHandler(async (req, res) => {
   }
 
   const isUserInRoom = room.users.some(
-    (userId) => userId.toString() === userId.toString()
+    (id) => id.toString() === userId.toString()
   );
   if (!isUserInRoom) {
     res.status(HTTPSTATUS.FORBIDDEN).json({
@@ -255,7 +258,7 @@ export const getMessagesByChatRoomId = AsyncHandler(async (req, res) => {
     const data = info.user;
 
     if (!otherUserId) {
-      res.status(HTTPS.BAD_REQUEST).json({
+      res.status(HTTPSTATUS.BAD_REQUEST).json({
         message: "No other user",
       });
       return;
