@@ -70,9 +70,8 @@ const initializeApp = async () => {
     console.log(`Database connected in ${Env.NODE_ENV} mode.`);
     
     const PORT = Env.PORT || 3001;
-    server.listen(PORT, '0.0.0.0', () => {
+    server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT} in ${Env.NODE_ENV} mode`);
-      console.log(`Server accessible at: http://0.0.0.0:${PORT}`);
       console.log(`API Base Path: ${BASE_PATH}`);
     });
     
