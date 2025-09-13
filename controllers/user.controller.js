@@ -59,6 +59,7 @@ export const fetchAllUsers = AsyncHandler(async (req, res) => {
     parseInt(limit),
     req.user._id
   );
+
   res.status(HTTPSTATUS.OK).json({
     success: true,
     message: result.message,
