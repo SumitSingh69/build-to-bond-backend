@@ -1,4 +1,5 @@
-import UserBehaviour from "../models/userBehaviour.model";
+
+import UserBehaviour from "../models/userBehaviour.model.js";
 
 export const incrementChatInitiationRate = async (userId) => {
   try {
