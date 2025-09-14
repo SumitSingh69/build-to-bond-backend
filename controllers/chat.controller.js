@@ -19,6 +19,8 @@ import {
   getMessagesByChatRoomIdSchema,
 } from "../validators/chat.validator.js";
 import { findUserByIdService } from "../services/user.service.js";
+import { incrementChatInitiationRate } from "../services/userBehaviour.service.js";
+
 export const createNewChatRoom = AsyncHandler(async (req, res) => {
   const body = createNewChatRoomSchema.parse(req.body);
   const userId = req.user?._id;
@@ -59,14 +61,15 @@ export const getAllChats = AsyncHandler(async (req, res) => {
 
   const chatWithUserData = await Promise.all(
     chats.map(async (chat) => {
-      const otherUserId = chat.users.find((id) => id.toString() !== userId.toString());
+      const otherUserId = chat.users.find(
+        (id) => id.toString() !== userId.toString()
+      );
 
       const unseenCount = await getUnseenMessagesCountService(userId, chat._id);
       try {
-        
         const result = await findUserByIdService(otherUserId);
         const otherUserData = result.user;
-        
+
         return {
           chat: {
             ...chat.toObject(),
@@ -75,17 +78,19 @@ export const getAllChats = AsyncHandler(async (req, res) => {
 
             currentUser: {
               id: userId.toString(),
-              role: "currentUser"
+              role: "currentUser",
             },
             otherUser: {
               id: otherUserId.toString(),
               firstName: otherUserData?.firstName || "Unknown",
               lastName: otherUserData?.lastName || "User",
-              profilePhoto: otherUserData?.profilePicture || otherUserData?.avatar || null,
-              role: "otherUser"
+              profilePhoto:
+                otherUserData?.profilePicture || otherUserData?.avatar || null,
+              role: "otherUser",
             },
 
-            profilePhoto: otherUserData?.profilePicture || otherUserData?.avatar || null,
+            profilePhoto:
+              otherUserData?.profilePicture || otherUserData?.avatar || null,
             firstName: otherUserData?.firstName || "Unknown",
             lastName: otherUserData?.lastName || "User",
           },
@@ -100,14 +105,14 @@ export const getAllChats = AsyncHandler(async (req, res) => {
 
             currentUser: {
               id: userId.toString(),
-              role: "currentUser"
+              role: "currentUser",
             },
             otherUser: {
               id: otherUserId?.toString() || "unknown",
               firstName: "Unknown",
               lastName: "User",
               profilePhoto: null,
-              role: "otherUser"
+              role: "otherUser",
             },
 
             profilePhoto: null,
@@ -177,6 +182,10 @@ export const sendMessage = AsyncHandler(async (req, res) => {
       message: "No other user",
     });
     return;
+  }
+  if (chat.lastMessage === "") {
+    // we are initiating a chat -> increament chat initiation rate
+    await incrementChatInitiationRate(senderId);
   }
 
   const receiverSocketId = getRecieverSocketId(otherUserId.toString());
@@ -278,7 +287,9 @@ export const getMessagesByChatRoomId = AsyncHandler(async (req, res) => {
 
   const messages = await getAllChatsByIdService(roomId);
 
-  const otherUserId = room.users.find((id) => id.toString() !== userId.toString());
+  const otherUserId = room.users.find(
+    (id) => id.toString() !== userId.toString()
+  );
   try {
     const info = await findUserByIdService(otherUserId);
     const otherUserData = info.user;
@@ -309,15 +320,16 @@ export const getMessagesByChatRoomId = AsyncHandler(async (req, res) => {
         id: roomId,
         currentUser: {
           id: userId.toString(),
-          role: "currentUser"
+          role: "currentUser",
         },
         otherUser: {
           id: otherUserId.toString(),
           firstName: otherUserData?.firstName || "Unknown",
           lastName: otherUserData?.lastName || "User",
-          profilePicture: otherUserData?.profilePicture || otherUserData?.avatar || null,
-          role: "otherUser"
-        }
+          profilePicture:
+            otherUserData?.profilePicture || otherUserData?.avatar || null,
+          role: "otherUser",
+        },
       },
       // Legacy field for backward compatibility
       user: otherUserData,
@@ -331,15 +343,15 @@ export const getMessagesByChatRoomId = AsyncHandler(async (req, res) => {
         id: roomId,
         currentUser: {
           id: userId.toString(),
-          role: "currentUser"
+          role: "currentUser",
         },
         otherUser: {
           id: otherUserId?.toString() || "unknown",
           firstName: "Unknown",
           lastName: "User",
           profilePicture: null,
-          role: "otherUser"
-        }
+          role: "otherUser",
+        },
       },
       // Legacy field for backward compatibility
       user: { _id: otherUserId, firstName: "Unknown", lastName: "User" },

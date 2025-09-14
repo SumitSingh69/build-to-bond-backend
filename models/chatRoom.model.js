@@ -14,6 +14,7 @@ const chatRoomSchema = new mongoose.Schema({
   },
   updatedAt: {
     type: Date,
+    default: Date.now,
   },
   totalRoomDuration: {
     type: Number,

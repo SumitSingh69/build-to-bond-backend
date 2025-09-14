@@ -99,3 +99,37 @@ export const updateManyChatsService = async (roomId, userId) => {
     throw error;
   }
 };
+export const getRecentChatRoomsService = async (userId, sevenDaysAgo) => {
+  try {
+    const recentChatRooms = await Chatroom.find({
+      users: userId,
+      updatedAt: { $gte: sevenDaysAgo },
+    }).sort({ updatedAt: -1 });
+    return recentChatRooms;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const verifyRealConversationService = async (
+  roomId,
+  user1,
+  user2,
+  sevenDaysAgo
+) => {
+  try {
+    const distinctSenders = await Chat.distinct("sender", {
+      roomId,
+      createdAt: { $gte: sevenDaysAgo },
+    });
+
+    // Check if both participants have sent messages
+    const bothActive =
+      distinctSenders.includes(user1.toString()) &&
+      distinctSenders.includes(user2.toString());
+
+    return bothActive;
+  } catch (error) {
+    throw error;
+  }
+};

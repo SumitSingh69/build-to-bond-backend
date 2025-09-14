@@ -1,6 +1,4 @@
 import mongoose from "mongoose";
-import { maxLength } from "zod";
-// import { _enum, _max } from "zod/v4/core";
 
 const chatSchema = new mongoose.Schema(
   {
