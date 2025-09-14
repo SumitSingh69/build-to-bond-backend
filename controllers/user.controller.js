@@ -20,6 +20,7 @@ import {
   LocationUpdateSchema,
   getAllUserSchema,
 } from "../validators/user.validator.js";
+import { getPendingFeedbacksService } from "../services/userBehaviour.service.js";
 import { HTTPSTATUS } from "../config/Https.config.js";
 
 export const registerUser = AsyncHandler(async (req, res) => {
@@ -255,5 +256,14 @@ export const logoutUser = AsyncHandler(async (req, res) => {
   res.status(HTTPSTATUS.OK).json({
     success: true,
     message: result.message,
+  });
+});
+export const getPendingFeedbacks = AsyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const result = await getPendingFeedbacksService(userId);
+  res.status(HTTPSTATUS.OK).json({
+    success: true,
+    message: "Pending feedbacks retrieved",
+    data: result,
   });
 });

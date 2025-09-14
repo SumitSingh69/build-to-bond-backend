@@ -8,9 +8,8 @@ import { Env } from "./config/env.config.js";
 import { AsyncHandler } from "./middlewares/AsyncHandler.middleware.js";
 import { HTTPSTATUS } from "./config/Https.config.js";
 import { ErrorHandler } from "./middlewares/ErrorHandler.middleware.js";
-
 import DatabaseConnect from "./config/database.config.js";
-
+import "./jobs/feedbackReminder.js";
 import UserRoute from "./routes/user.route.js";
 import ChatRoute from "./routes/chat.route.js";
 
@@ -68,13 +67,12 @@ const initializeApp = async () => {
   try {
     await DatabaseConnect();
     console.log(`Database connected in ${Env.NODE_ENV} mode.`);
-    
+
     const PORT = Env.PORT || 3001;
     server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT} in ${Env.NODE_ENV} mode`);
       console.log(`API Base Path: ${BASE_PATH}`);
     });
-    
   } catch (error) {
     console.error("Failed to initialize app:", error);
     process.exit(1);

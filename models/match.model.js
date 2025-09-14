@@ -8,7 +8,7 @@ const matchSchema = new mongoose.Schema(
       required: true,
     },
 
-    dailyMatches: [
+    weeklyMatches: [
       {
         matchedUserId: {
           type: mongoose.Schema.Types.ObjectId,
@@ -61,37 +61,6 @@ const matchSchema = new mongoose.Schema(
         },
       },
     ],
-
-    preferences: {
-      ageRange: {
-        min: {
-          type: Number,
-          default: 18,
-          min: 18,
-        },
-        max: {
-          type: Number,
-          default: 99,
-          max: 99,
-        },
-      },
-      requiredInterests: [String],
-      dealBreakers: {
-        smoking: [String],
-        drinking: [String],
-        children: [String],
-      },
-      preferredEducation: [String],
-      preferredOccupation: [String],
-    },
-
-    userBehavior: {
-      averageTimeToDecide: Number,
-      likeRatio: { type: Number, default: 0 },
-      preferredTimeOfDay: [Number],
-      peakActivityDays: [Number],
-    },
-
     lastGenerated: {
       type: Date,
       default: Date.now,
@@ -114,24 +83,15 @@ matchSchema.index({ "dailyMatches.generatedAt": 1 });
 matchSchema.index({ "dailyMatches.expiresAt": 1 });
 
 matchSchema.methods.getActiveMatches = function () {
-  return this.dailyMatches.filter(
+  return this.weeklyMatches.filter(
     (match) => match.status === "pending" && match.expiresAt > new Date()
   );
 };
 
-matchSchema.methods.updateBehaviorStats = function (action, timeTaken) {
+matchSchema.methods.updateStats = function (action, timeTaken) {
   if (action === "like") this.stats.totalLikes++;
   if (action === "pass") this.stats.totalPasses++;
   if (action === "super_like") this.stats.totalSuperLikes++;
-
-  const totalDecisions =
-    this.stats.totalLikes + this.stats.totalPasses + this.stats.totalSuperLikes;
-  this.userBehavior.averageTimeToDecide =
-    ((this.userBehavior.averageTimeToDecide || 0) * (totalDecisions - 1) +
-      timeTaken) /
-    totalDecisions;
-
-  this.userBehavior.likeRatio = this.stats.totalLikes / totalDecisions;
 };
 
 export default mongoose.model("Match", matchSchema);

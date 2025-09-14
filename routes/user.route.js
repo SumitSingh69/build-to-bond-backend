@@ -13,6 +13,7 @@ import {
   findUserById,
   refreshToken,
   logoutUser,
+  getPendingFeedbacks,
 } from "../controllers/user.controller.js";
 
 import { IsAuthenticated } from "../middlewares/Auth.middleware.js";
@@ -37,6 +38,9 @@ router.get("/:id", findUserById); // Find user by ID
 
 // Location management
 router.put("/location", updateLocation); // Update location only
+
+//feedback management
+router.get("/feedback/pending", getPendingFeedbacks); // Fetch users with pending feedback (example route)
 
 // Account management
 router.put("/change-password", changePassword); // Change password
