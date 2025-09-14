@@ -90,8 +90,8 @@ export const fetchAllUsers = AsyncHandler(async (req, res) => {
       new Date().setFullYear(new Date().getFullYear() - ageMin)
     );
     filters.dateOfBirth = {};
-    if (ageMin) filters.dob.$lte = maxDOB;
-    if (ageMax) filters.dob.$gte = minDOB;
+    if (ageMin) filters.dateOfBirth.$lte = maxDOB;
+    if (ageMax) filters.dateOfBirth.$gte = minDOB;
   }
   if (genderPreference) filters.gender = genderPreference;
   if (lookingFor) filters.lookingFor = lookingFor;
@@ -100,14 +100,32 @@ export const fetchAllUsers = AsyncHandler(async (req, res) => {
     if (heightMin) filters.height.$gte = Number(heightMin);
     if (heightMax) filters.height.$lte = Number(heightMax);
   }
-  if (education) filters.education = { $in: education.split(",") };
-  if (smoking) filters.smoking = { $in: smoking.split(",") };
-  if (drinking) filters.drinking = { $in: drinking.split(",") };
-  if (children) filters.children = { $in: children.split(",") };
+  if (education) {
+    const educationArray = Array.isArray(education) ? education : education.split(",");
+    filters.education = { $in: educationArray };
+  }
+  if (smoking) {
+    const smokingArray = Array.isArray(smoking) ? smoking : smoking.split(",");
+    filters.smoking = { $in: smokingArray };
+  }
+  if (drinking) {
+    const drinkingArray = Array.isArray(drinking) ? drinking : drinking.split(",");
+    filters.drinking = { $in: drinkingArray };
+  }
+  if (children) {
+    const childrenArray = Array.isArray(children) ? children : children.split(",");
+    filters.children = { $in: childrenArray };
+  }
   if (relationshipStatus) filters.relationshipStatus = relationshipStatus;
-  if (interests) filters.interests = { $in: interests.split(",") };
+  if (interests) {
+    const interestsArray = Array.isArray(interests) ? interests : interests.split(",");
+    filters.interests = { $in: interestsArray };
+  }
   if (religion) filters.religion = religion;
-  if (languages) filters.languages = { $in: languages.split(",") };
+  if (languages) {
+    const languagesArray = Array.isArray(languages) ? languages : languages.split(",");
+    filters.languages = { $in: languagesArray };
+  }
 
   if (isVerified) filters.isVerified = isVerified === "true";
 
