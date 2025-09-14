@@ -40,3 +40,19 @@ export const getPendingFeedbacksService = async (userId) => {
     throw error;
   }
 };
+
+export const updateAvgChatLengthService = async (userId, chatLength) => {
+  try {
+    await UserBehaviour.updateOne(
+      { userId: senderId },
+      {
+        $inc: {
+          "avgChatLength.sum": textLength,
+          "avgChatLength.count": 1,
+        },
+      }
+    );
+  } catch (error) {
+    throw error;
+  }
+};
