@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import UserBehaviour from "../models/UserBehaviour.js";
+import UserBehaviour from "../models/userBehaviour.model.js";
 import {
   getRecentChatRoomsService,
   verifyRealConversationService,
