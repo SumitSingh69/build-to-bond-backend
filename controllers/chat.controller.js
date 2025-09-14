@@ -19,7 +19,10 @@ import {
   getMessagesByChatRoomIdSchema,
 } from "../validators/chat.validator.js";
 import { findUserByIdService } from "../services/user.service.js";
-import { incrementChatInitiationRate } from "../services/userBehaviour.service.js";
+import {
+  incrementChatInitiationRate,
+  updateAvgChatLengthService,
+} from "../services/userBehaviour.service.js";
 
 export const createNewChatRoom = AsyncHandler(async (req, res) => {
   const body = createNewChatRoomSchema.parse(req.body);
@@ -215,6 +218,12 @@ export const sendMessage = AsyncHandler(async (req, res) => {
   } else {
     messageData.message = text;
     messageData.messageType = "text";
+  }
+  if (text) {
+    // find text length by trimming all the spaces
+    const trimmedText = text.trim();
+    const textLength = trimmed.length;
+    await updateAvgChatLengthService(senderId, textLength);
   }
 
   const message = new Chat(messageData);
