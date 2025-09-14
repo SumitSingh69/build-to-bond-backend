@@ -33,7 +33,16 @@ const userBehaviourSchema = new mongoose.Schema({
     preferredGender: String,
   },
   chatInitiationRate: { type: Number, default: 0 },
-  avgChatLength: { type: Number, default: 0 },
+  avgChatLength: {
+    sum: {
+      type: Number,
+      default: 0,
+    },
+    count: {
+      type: Number,
+      default: 0,
+    },
+  },
   feedbackScore: {
     type: Map,
     of: Number,

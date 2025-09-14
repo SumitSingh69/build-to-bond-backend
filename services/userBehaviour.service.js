@@ -1,6 +1,5 @@
-
 import UserBehaviour from "../models/userBehaviour.model.js";
-
+import mongoose from "mongoose";
 export const incrementChatInitiationRate = async (userId) => {
   try {
     await UserBehaviour.findOneAndUpdate(
@@ -14,11 +13,12 @@ export const incrementChatInitiationRate = async (userId) => {
 };
 export const getPendingFeedbacksService = async (userId) => {
   try {
-    const userBehaviour = await UserBehaviour.findOne({ userId }).populate(
-      "feedbackTo",
-      "firstName lastName email profilePicture"
-    );
+    console.log(userId);
+    const userBehaviour = await UserBehaviour.findOne({
+      userId: new mongoose.Types.ObjectId(userId),
+    }).populate("feedbackTo", "firstName lastName email profilePicture");
 
+    console.log(userBehaviour.feedbackTo[0]);
     if (!userBehaviour) {
       return {
         pendingFeedback: false,
