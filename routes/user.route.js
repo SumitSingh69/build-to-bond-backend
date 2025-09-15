@@ -15,7 +15,10 @@ import {
   logoutUser,
   getPendingFeedbacks,
   submitPendingFeedbacks,
+<<<<<<< HEAD
   updatePersonalityScore,
+=======
+>>>>>>> 983a1706cb3043fc82f78edc29ac1c445838e2a0
 } from "../controllers/user.controller.js";
 
 import { IsAuthenticated } from "../middlewares/Auth.middleware.js";

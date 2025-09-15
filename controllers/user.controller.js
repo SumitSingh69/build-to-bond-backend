@@ -25,7 +25,10 @@ import {
 import {
   getPendingFeedbacksService,
   updateFeedbackScoreService,
+<<<<<<< HEAD
   updateSearchTypeService,
+=======
+>>>>>>> 983a1706cb3043fc82f78edc29ac1c445838e2a0
 } from "../services/userBehaviour.service.js";
 import { HTTPSTATUS } from "../config/Https.config.js";
 
@@ -310,6 +313,7 @@ export const getPendingFeedbacks = AsyncHandler(async (req, res) => {
 });
 export const submitPendingFeedbacks = AsyncHandler(async (req, res) => {
   //validate the request body first using zod
+<<<<<<< HEAD
   const feedbacks = SubmitFeedbackSchema.parse(req.body);
   console.log(feedbacks);
   const userId = req.user._id;
@@ -355,5 +359,14 @@ export const updatePersonalityScore = AsyncHandler(async (req, res) => {
   return res.status(HTTPSTATUS.OK).json({
     success: true,
     message: result.message,
+=======
+  const body = SubmitFeedbackSchema.parse(req.body);
+  const userId = req.user._id;
+  //call the service to submit feedback
+  const result = await updateFeedbackScoreService(userId, body);
+  return res.status(HTTPSTATUS.OK).json({
+    success: true,
+    data: result,
+>>>>>>> 983a1706cb3043fc82f78edc29ac1c445838e2a0
   });
 });
