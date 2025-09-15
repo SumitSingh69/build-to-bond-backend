@@ -19,8 +19,12 @@ import {
   PasswordChangeSchema,
   LocationUpdateSchema,
   getAllUserSchema,
+  SubmitFeedbackSchema,
 } from "../validators/user.validator.js";
-import { getPendingFeedbacksService } from "../services/userBehaviour.service.js";
+import {
+  getPendingFeedbacksService,
+  updateFeedbackScoreService,
+} from "../services/userBehaviour.service.js";
 import { HTTPSTATUS } from "../config/Https.config.js";
 
 export const registerUser = AsyncHandler(async (req, res) => {
@@ -101,7 +105,9 @@ export const fetchAllUsers = AsyncHandler(async (req, res) => {
     if (heightMax) filters.height.$lte = Number(heightMax);
   }
   if (education) {
-    const educationArray = Array.isArray(education) ? education : education.split(",");
+    const educationArray = Array.isArray(education)
+      ? education
+      : education.split(",");
     filters.education = { $in: educationArray };
   }
   if (smoking) {
@@ -109,21 +115,29 @@ export const fetchAllUsers = AsyncHandler(async (req, res) => {
     filters.smoking = { $in: smokingArray };
   }
   if (drinking) {
-    const drinkingArray = Array.isArray(drinking) ? drinking : drinking.split(",");
+    const drinkingArray = Array.isArray(drinking)
+      ? drinking
+      : drinking.split(",");
     filters.drinking = { $in: drinkingArray };
   }
   if (children) {
-    const childrenArray = Array.isArray(children) ? children : children.split(",");
+    const childrenArray = Array.isArray(children)
+      ? children
+      : children.split(",");
     filters.children = { $in: childrenArray };
   }
   if (relationshipStatus) filters.relationshipStatus = relationshipStatus;
   if (interests) {
-    const interestsArray = Array.isArray(interests) ? interests : interests.split(",");
+    const interestsArray = Array.isArray(interests)
+      ? interests
+      : interests.split(",");
     filters.interests = { $in: interestsArray };
   }
   if (religion) filters.religion = religion;
   if (languages) {
-    const languagesArray = Array.isArray(languages) ? languages : languages.split(",");
+    const languagesArray = Array.isArray(languages)
+      ? languages
+      : languages.split(",");
     filters.languages = { $in: languagesArray };
   }
 
@@ -282,6 +296,17 @@ export const getPendingFeedbacks = AsyncHandler(async (req, res) => {
   res.status(HTTPSTATUS.OK).json({
     success: true,
     message: "Pending feedbacks retrieved",
+    data: result,
+  });
+});
+export const submitPendingFeedbacks = AsyncHandler(async (req, res) => {
+  //validate the request body first using zod
+  const body = SubmitFeedbackSchema.parse(req.body);
+  const userId = req.user._id;
+  //call the service to submit feedback
+  const result = await updateFeedbackScoreService(userId, body);
+  return res.status(HTTPSTATUS.OK).json({
+    success: true,
     data: result,
   });
 });

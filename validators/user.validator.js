@@ -168,7 +168,6 @@ export const LocationUpdateSchema = z.object({
 });
 export const getAllUserSchema = z
   .object({
-
     page: z.coerce.number().min(1).optional().default(1),
     limit: z.coerce.number().min(1).max(100).optional().default(10),
     ageMin: z.coerce.number().min(18).max(60).optional(),
@@ -219,3 +218,14 @@ export const getAllUserSchema = z
       message: "Minimum height must be less than or equal to maximum height",
     }
   );
+
+export const SubmitFeedbackSchema = z.object({
+  feedbacks: z
+    .array(
+      z.object({
+        userId: z.string().min(1, "userId is required"),
+        rating: z.number().int().min(1).max(5), // rating must be 1–5
+      })
+    )
+    .min(1, "At least one feedback is required"),
+});

@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-
+import { startChatSession, endChatSession } from "../utils/chatSessionUtils.js";
 import http from "http";
 import express from "express";
 
@@ -29,6 +29,15 @@ io.on("connection", (socket) => {
   if (userId) {
     socket.join(userId);
   }
+  socket.on("joinRoom", ({ userId, roomId, otherUserId }) => {
+    socket.join(roomId);
+    startChatSession(userId, otherUserId);
+  });
+
+  socket.on("leaveRoom", ({ userId, roomId, otherUserId }) => {
+    socket.leave(roomId);
+    endChatSession(userId, otherUserId);
+  });
   socket.on("typing", (data) => {
     console.log(`User ${data.userId} is typing in chat ${data.roomId}`);
     // Emit to all users in the room
@@ -36,11 +45,11 @@ io.on("connection", (socket) => {
       roomId: data.roomId,
       userId: data.userId,
     });
-    
+
     // Also emit to other users specifically (backup method)
     const roomSockets = io.sockets.adapter.rooms.get(data.roomId);
     if (roomSockets) {
-      roomSockets.forEach(socketId => {
+      roomSockets.forEach((socketId) => {
         if (socketId !== socket.id) {
           io.to(socketId).emit("userTyping", {
             roomId: data.roomId,
@@ -58,11 +67,11 @@ io.on("connection", (socket) => {
       roomId: data.roomId,
       userId: data.userId,
     });
-    
+
     // Also emit to other users specifically (backup method)
     const roomSockets = io.sockets.adapter.rooms.get(data.roomId);
     if (roomSockets) {
-      roomSockets.forEach(socketId => {
+      roomSockets.forEach((socketId) => {
         if (socketId !== socket.id) {
           io.to(socketId).emit("userStoppedTyping", {
             roomId: data.roomId,
@@ -85,17 +94,20 @@ io.on("connection", (socket) => {
 
   // Handle real-time message sending
   socket.on("sendMessage", (data) => {
-    console.log(`Message from ${data.senderId} in room ${data.roomId}:`, data.message);
+    console.log(
+      `Message from ${data.senderId} in room ${data.roomId}:`,
+      data.message
+    );
     // Broadcast to room (this is for immediate feedback, actual save happens via API)
     socket.to(data.roomId).emit("newMessage", {
       _id: Date.now().toString(), // Temporary ID until API saves
       sender: data.senderId,
       message: data.message,
-      messageType: data.messageType || 'text',
+      messageType: data.messageType || "text",
       roomId: data.roomId,
       createdAt: new Date().toISOString(),
       seenStatus: false,
-      deliveredStatus: 'sent'
+      deliveredStatus: "sent",
     });
   });
 
