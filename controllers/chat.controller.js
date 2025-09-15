@@ -222,7 +222,8 @@ export const sendMessage = AsyncHandler(async (req, res) => {
   if (text) {
     // find text length by trimming all the spaces
     const trimmedText = text.trim();
-    const textLength = trimmed.length;
+    const textLength = trimmedText.length;
+    console.log("Text length:", textLength);
     await updateAvgChatLengthService(senderId, textLength);
   }
 

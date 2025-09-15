@@ -42,7 +42,7 @@ export const getPendingFeedbacksService = async (userId) => {
   }
 };
 
-export const updateAvgChatLengthService = async (userId, chatLength) => {
+export const updateAvgChatLengthService = async (senderId, textLength) => {
   try {
     await UserBehaviour.updateOne(
       { userId: senderId },
@@ -53,6 +53,33 @@ export const updateAvgChatLengthService = async (userId, chatLength) => {
         },
       }
     );
+  } catch (error) {
+    throw error;
+  }
+};
+export const updateFeedbackScoreService = async (userId, score) => {
+  try {
+    for (const { userId: targetUserId, rating } of feedbacks) {
+      await UserBehaviour.updateOne(
+        { userId: targetUserId },
+        { $set: { [`feedbackScore.${userId}`]: rating } }, // save rating from this user
+        { upsert: true }
+      );
+    }
+
+    // ✅ Mark feedback as submitted for this user
+    await UserBehaviour.updateOne(
+      { userId },
+      {
+        $set: { feedbackPending: false },
+        $pull: { feedbackTo: { $in: feedbacks.map((f) => f.userId) } },
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Feedbacks submitted successfully",
+    });
   } catch (error) {
     throw error;
   }

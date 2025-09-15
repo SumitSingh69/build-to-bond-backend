@@ -14,6 +14,7 @@ import {
   refreshToken,
   logoutUser,
   getPendingFeedbacks,
+  submitPendingFeedbacks,
 } from "../controllers/user.controller.js";
 
 import { IsAuthenticated } from "../middlewares/Auth.middleware.js";
@@ -41,6 +42,7 @@ router.put("/location", updateLocation); // Update location only
 
 //feedback management
 router.get("/feedback/pending", getPendingFeedbacks); // Fetch users with pending feedback (example route)
+router.post("/feedback/pending", submitPendingFeedbacks); // Fetch users with pending feedback (example route)
 
 // Account management
 router.put("/change-password", changePassword); // Change password
