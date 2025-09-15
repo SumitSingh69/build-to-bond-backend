@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from "../utils/AppError.js";
 import { comparePassword } from "../utils/bcrypt.js";
+import UserBehaviour from "../models/userBehaviour.model.js";
 import jwt from "jsonwebtoken";
 
 export const registerService = async (userData) => {
@@ -33,6 +34,7 @@ export const registerService = async (userData) => {
     });
 
     await newUser.save();
+    await UserBehaviour.create({ userId: newUser._id });
 
     newUser.calculateProfileCompleteness();
     await newUser.save();
@@ -257,12 +259,12 @@ export const updateLocationService = async (userId, locationData) => {
   }
 };
 
-export const getUserProfileService = async (userId) => {
+export const getUserProfileService = async (otherUserId) => {
   try {
-    const user = await User.findById(userId)
+    // console.log("Fetching profile for user ID:", otherUserId);
+    const user = await User.findById(otherUserId)
       .populate("matches", "firstName lastName profilePicture")
       .populate("crushes", "firstName lastName profilePicture");
-
     if (!user) {
       throw new UnauthorizedException("User not found");
     }
@@ -370,6 +372,21 @@ export const getUserData = async (userId) => {
       throw new NotFoundException("User not found");
     }
     return user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updatePersonalityScoreService = async (userId, score) => {
+  try {
+    await User.updateOne(
+      { _id: userId }, // filter
+      { $set: { personailityScore: score } } // update
+    );
+
+    return {
+      message: "Personality score updated successfully",
+    };
   } catch (error) {
     throw error;
   }

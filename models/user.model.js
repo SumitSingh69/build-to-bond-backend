@@ -183,6 +183,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    personailityScore: {
+      type: Number,
+      default: 5,
+      min: 0,
+      max: 10,
+    },
     languages: [
       {
         type: String,
@@ -225,27 +231,35 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    verificationBadges: [{
-      type: {
-        type: String,
-        enum: ["email", "phone", "photo", "social"],
+    clusterNumber: {
+      type: Number,
+      default: 0,
+    },
+    verificationBadges: [
+      {
+        type: {
+          type: String,
+          enum: ["email", "phone", "photo", "social"],
+        },
+        verifiedAt: {
+          type: Date,
+          default: Date.now,
+        },
       },
-      verifiedAt: {
-        type: Date,
-        default: Date.now,
-      }
-    }],
-    deviceTokens: [{
-      token: String,
-      platform: {
-        type: String,
-        enum: ["ios", "android", "web"],
+    ],
+    deviceTokens: [
+      {
+        token: String,
+        platform: {
+          type: String,
+          enum: ["ios", "android", "web"],
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
       },
-      createdAt: {
-        type: Date,
-        default: Date.now,
-      }
-    }],
+    ],
   },
   {
     timestamps: true,
@@ -295,22 +309,24 @@ userSchema.methods.omitPassword = function () {
 };
 
 userSchema.methods.generateRefreshToken = function () {
-  const refreshToken = crypto.randomBytes(64).toString('hex');
-  
+  const refreshToken = crypto.randomBytes(64).toString("hex");
+
   // Refresh token expires in 7 days
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 7);
-  
+
   this.refreshToken = refreshToken;
   this.refreshTokenExpiresAt = expiresAt;
-  
+
   return refreshToken;
 };
 
 userSchema.methods.isRefreshTokenValid = function (token) {
-  return this.refreshToken === token && 
-         this.refreshTokenExpiresAt && 
-         new Date() < this.refreshTokenExpiresAt;
+  return (
+    this.refreshToken === token &&
+    this.refreshTokenExpiresAt &&
+    new Date() < this.refreshTokenExpiresAt
+  );
 };
 
 userSchema.methods.clearRefreshToken = function () {

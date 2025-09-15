@@ -11,6 +11,7 @@ import {
   findUserByIdService,
   refreshTokenService,
   logoutService,
+  updatePersonalityScoreService,
 } from "../services/user.service.js";
 import {
   LoginSchema,
@@ -24,6 +25,7 @@ import {
 import {
   getPendingFeedbacksService,
   updateFeedbackScoreService,
+  updateSearchTypeService,
 } from "../services/userBehaviour.service.js";
 import { HTTPSTATUS } from "../config/Https.config.js";
 
@@ -222,8 +224,10 @@ export const getUserProfile = AsyncHandler(async (req, res) => {
 });
 
 export const getPublicProfile = AsyncHandler(async (req, res) => {
-  const { userId } = req.params;
-  const result = await getUserProfileService(userId);
+  const otherUserId = req.params;
+  const userId = req.user._id;
+  console.log(otherUserId.userId);
+  const result = await getUserProfileService(otherUserId.userId);
 
   const publicProfile = {
     ...result.user,
@@ -237,6 +241,11 @@ export const getPublicProfile = AsyncHandler(async (req, res) => {
     likes: undefined,
     passedBy: undefined,
   };
+  console.log("wtf");
+  const score = publicProfile.personailityScore;
+  if (score) {
+    await updateSearchTypeService(userId, score);
+  }
 
   res.status(HTTPSTATUS.OK).json({
     success: true,
@@ -301,12 +310,50 @@ export const getPendingFeedbacks = AsyncHandler(async (req, res) => {
 });
 export const submitPendingFeedbacks = AsyncHandler(async (req, res) => {
   //validate the request body first using zod
-  const body = SubmitFeedbackSchema.parse(req.body);
+  const feedbacks = SubmitFeedbackSchema.parse(req.body);
+  console.log(feedbacks);
   const userId = req.user._id;
   //call the service to submit feedback
-  const result = await updateFeedbackScoreService(userId, body);
+  const result = await updateFeedbackScoreService(userId, feedbacks.feedbacks);
   return res.status(HTTPSTATUS.OK).json({
     success: true,
-    data: result,
+    message: result.message,
+  });
+});
+const optionScores = {
+  "Strongly Disagree": 0,
+  Disagree: 0.25,
+  Neutral: 0.5,
+  Agree: 0.75,
+  "Strongly Agree": 1,
+};
+
+export const updatePersonalityScore = AsyncHandler(async (req, res) => {
+  const { answers } = req.body;
+
+  if (!answers || !Array.isArray(answers)) {
+    return res.status(HTTPSTATUS.BAD_REQUEST).json({
+      success: false,
+      message: "Answers must be an array",
+    });
+  }
+
+  const userId = req.user._id;
+
+  let totalScore = 0;
+
+  for (const response of answers) {
+    if (optionScores[response] !== undefined) {
+      totalScore += optionScores[response];
+    }
+  }
+
+  const averageScore = answers.length > 0 ? totalScore / answers.length : 0;
+
+  const result = await updatePersonalityScoreService(userId, totalScore);
+
+  return res.status(HTTPSTATUS.OK).json({
+    success: true,
+    message: result.message,
   });
 });

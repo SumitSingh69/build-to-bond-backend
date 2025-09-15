@@ -15,6 +15,7 @@ import {
   logoutUser,
   getPendingFeedbacks,
   submitPendingFeedbacks,
+  updatePersonalityScore,
 } from "../controllers/user.controller.js";
 
 import { IsAuthenticated } from "../middlewares/Auth.middleware.js";
@@ -25,10 +26,11 @@ const router = express.Router();
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/refresh-token", refreshToken); // Refresh access token
-router.get("/profile/:userId", getPublicProfile); // Public profile view
 
 // Protected routes (authentication required)
 router.use(IsAuthenticated); // Apply authentication middleware to all routes below
+
+router.get("/profile/:userId", getPublicProfile); // profile view
 
 // Profile management
 router.get("/profile", getUserProfile); // Get own profile
@@ -39,6 +41,9 @@ router.get("/:id", findUserById); // Find user by ID
 
 // Location management
 router.put("/location", updateLocation); // Update location only
+
+// getting personality score
+router.post("/personality-score", updatePersonalityScore); // Update profile with personality score
 
 //feedback management
 router.get("/feedback/pending", getPendingFeedbacks); // Fetch users with pending feedback (example route)

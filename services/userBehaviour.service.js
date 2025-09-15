@@ -1,5 +1,7 @@
 import UserBehaviour from "../models/userBehaviour.model.js";
 import mongoose from "mongoose";
+import { callAIModelService, getClusterService } from "./ai.service.js";
+import User from "../models/user.model.js";
 export const incrementChatInitiationRate = async (userId) => {
   try {
     await UserBehaviour.findOneAndUpdate(
@@ -18,7 +20,7 @@ export const getPendingFeedbacksService = async (userId) => {
       userId: new mongoose.Types.ObjectId(userId),
     }).populate("feedbackTo", "firstName lastName email profilePicture");
 
-    console.log(userBehaviour.feedbackTo[0]);
+    console.log("hello" + userBehaviour);
     if (!userBehaviour) {
       return {
         pendingFeedback: false,
@@ -57,12 +59,17 @@ export const updateAvgChatLengthService = async (senderId, textLength) => {
     throw error;
   }
 };
-export const updateFeedbackScoreService = async (userId, score) => {
+export const updateFeedbackScoreService = async (userId, feedbacks) => {
   try {
-    for (const { userId: targetUserId, rating } of feedbacks) {
+    for (const { userId, rating } of feedbacks) {
       await UserBehaviour.updateOne(
-        { userId: targetUserId },
-        { $set: { [`feedbackScore.${userId}`]: rating } }, // save rating from this user
+        { userId: userId },
+        {
+          $inc: {
+            "feedbackScore.sum": rating, // add the new rating to sum
+            "feedbackScore.count": 1, // increment count
+          },
+        },
         { upsert: true }
       );
     }
@@ -76,11 +83,58 @@ export const updateFeedbackScoreService = async (userId, score) => {
       }
     );
 
-    return res.status(200).json({
-      success: true,
+    return {
       message: "Feedbacks submitted successfully",
-    });
+    };
   } catch (error) {
     throw error;
   }
+};
+export const updateSearchTypeService = async (userId, score) => {
+  try {
+    console.log("hello" + userId);
+    await UserBehaviour.updateOne(
+      { userId }, // filter
+      {
+        $inc: {
+          "searchType.sum": score,
+          "searchType.count": 1,
+        },
+      },
+      { upsert: true } // options
+    );
+  } catch (error) {
+    throw error;
+  }
+};
+export const updateDueBehavioursService = async (sevenDaysAgo) => {
+  const behaviours = await UserBehaviour.find({
+    $or: [{ lastAIUpdate: null }, { lastAIUpdate: { $lte: sevenDaysAgo } }],
+  });
+
+  for (const behaviour of behaviours) {
+    try {
+      const userId = behaviour.userId;
+      const aiResponse = await callAIModelService(userId);
+      const cluster = await getClusterService(apiResponse);
+      console.log("the cluster is " + cluster);
+      const user = await User.findById(userId);
+      if (!user) {
+        throw new Error("User not found");
+      }
+      user.clusterNumber = cluster;
+      await user.save();
+      behaviour.lastAIUpdate = new Date();
+      await behaviour.save();
+
+      console.log(`✅ Updated behaviour for user ${behaviour.userId}`);
+    } catch (err) {
+      console.error(
+        `❌ Failed updating behaviour for user ${behaviour.userId}`,
+        err
+      );
+    }
+  }
+
+  return;
 };

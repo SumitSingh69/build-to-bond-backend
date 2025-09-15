@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { getUserChatDurations } from "../utils/chatSessionUtils";
 const userBehaviourSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -43,9 +44,13 @@ const userBehaviourSchema = new mongoose.Schema({
       default: 0,
     },
   },
+  chatDuration: {
+    type: Number,
+    default: 0,
+  },
   feedbackScore: {
-    type: Map,
-    of: Number,
+    sum: { type: Number, default: 0 },
+    count: { type: Number, default: 0 },
   },
   lastFeedbackAskedAt: { type: Date, default: Date.now },
   feedbackPending: {
@@ -58,6 +63,20 @@ const userBehaviourSchema = new mongoose.Schema({
       ref: "User", // the people they need to give feedback on
     },
   ],
+  searchType: {
+    sum: {
+      type: Number,
+      default: 0,
+    },
+    count: {
+      type: Number,
+      default: 0,
+    },
+    lastAIUpdate: {
+      type: Date,
+      default: null,
+    },
+  },
 });
 
 const UserBehaviour = mongoose.model("UserBehaviour", userBehaviourSchema);

@@ -1,7 +1,7 @@
 import cron from "node-cron";
 
 import UserBehaviour from "../models/userBehaviour.model.js";
-
+import { updateDueBehavioursService } from "../services/userBehaviour.service.js";
 import {
   getRecentChatRoomsService,
   verifyRealConversationService,
@@ -12,6 +12,7 @@ cron.schedule("0 10 * * *", async () => {
   console.log("⏰ Running feedback reminder cron job...");
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  await updateDueBehavioursService(sevenDaysAgo);
 
   const users = await UserBehaviour.find({
     lastFeedbackAskedAt: { $lte: sevenDaysAgo },
