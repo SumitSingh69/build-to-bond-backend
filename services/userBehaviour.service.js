@@ -59,7 +59,7 @@ export const updateAvgChatLengthService = async (senderId, textLength) => {
     throw error;
   }
 };
-<<<<<<< HEAD
+
 export const updateFeedbackScoreService = async (userId, feedbacks) => {
   try {
     for (const { userId, rating } of feedbacks) {
@@ -71,25 +71,11 @@ export const updateFeedbackScoreService = async (userId, feedbacks) => {
             "feedbackScore.count": 1, // increment count
           },
         },
-=======
-export const updateFeedbackScoreService = async (userId, body) => {
-  try {
-    const { feedbacks } = body; 
-    
-    for (const { userId: targetUserId, rating } of feedbacks) {
-      await UserBehaviour.updateOne(
-        { userId: targetUserId },
-        { $set: { [`feedbackScore.${userId}`]: rating } }, 
->>>>>>> 983a1706cb3043fc82f78edc29ac1c445838e2a0
+
         { upsert: true }
       );
     }
 
-<<<<<<< HEAD
-    // ✅ Mark feedback as submitted for this user
-=======
-    
->>>>>>> 983a1706cb3043fc82f78edc29ac1c445838e2a0
     await UserBehaviour.updateOne(
       { userId },
       {
@@ -99,19 +85,13 @@ export const updateFeedbackScoreService = async (userId, body) => {
     );
 
     return {
-<<<<<<< HEAD
       message: "Feedbacks submitted successfully",
-=======
-      success: true,
-      message: "Feedbacks submitted successfully",
-      feedbackCount: feedbacks.length
->>>>>>> 983a1706cb3043fc82f78edc29ac1c445838e2a0
     };
   } catch (error) {
     throw error;
   }
 };
-<<<<<<< HEAD
+
 export const updateSearchTypeService = async (userId, score) => {
   try {
     console.log("hello" + userId);
@@ -160,5 +140,3 @@ export const updateDueBehavioursService = async (sevenDaysAgo) => {
 
   return;
 };
-=======
->>>>>>> 983a1706cb3043fc82f78edc29ac1c445838e2a0
