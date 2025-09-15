@@ -57,17 +57,19 @@ export const updateAvgChatLengthService = async (senderId, textLength) => {
     throw error;
   }
 };
-export const updateFeedbackScoreService = async (userId, score) => {
+export const updateFeedbackScoreService = async (userId, body) => {
   try {
+    const { feedbacks } = body; 
+    
     for (const { userId: targetUserId, rating } of feedbacks) {
       await UserBehaviour.updateOne(
         { userId: targetUserId },
-        { $set: { [`feedbackScore.${userId}`]: rating } }, // save rating from this user
+        { $set: { [`feedbackScore.${userId}`]: rating } }, 
         { upsert: true }
       );
     }
 
-    // ✅ Mark feedback as submitted for this user
+    
     await UserBehaviour.updateOne(
       { userId },
       {
@@ -76,10 +78,11 @@ export const updateFeedbackScoreService = async (userId, score) => {
       }
     );
 
-    return res.status(200).json({
+    return {
       success: true,
       message: "Feedbacks submitted successfully",
-    });
+      feedbackCount: feedbacks.length
+    };
   } catch (error) {
     throw error;
   }
